@@ -9,16 +9,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 @RestController
 public class Controller {
@@ -29,11 +34,11 @@ public class Controller {
 
         List<String> filenames = new ArrayList<String>();
 
-        List<Map<String,Object>> listofmap = new ArrayList<>();
+        List<Map<String, Object>> listofmap = new ArrayList<>();
 
-        Map<String,Object> maps = new HashMap<>();
-        maps.put("one", "two.txt");
-        maps.put("two","two.txt");
+        Map<String, Object> maps = new HashMap<>();
+        maps.put("one", "one.txt");
+        maps.put("two", "two.txt");
         listofmap.add(maps);
 
         for (Map map : listofmap) {
@@ -66,6 +71,7 @@ public class Controller {
                 zipOutputStream.closeEntry();
                 bufferedInputStream.close();
                 fileInputStream.close();
+                IOUtils.copy(bufferedInputStream, response.getOutputStream());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -74,11 +80,41 @@ public class Controller {
         byteArrayOutputStream.flush();
         zipOutputStream.close();
         byteArrayOutputStream.close();
+
         ServletOutputStream servletOutputStream = response.getOutputStream();
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment; filename=\"MyZip.ZIP\"");
         servletOutputStream.write(byteArrayOutputStream.toByteArray());
         return null;
     }
-    
+
+    @GetMapping("/passwordzip")
+    public String passwordProtectedzip(HttpServletResponse response) {
+        try {
+
+            ZipFile zipFile = new ZipFile("Myzip.zip", "password".toCharArray());
+
+            ArrayList<File> list = new ArrayList<File>();
+            list.add(new File("/home/dora/Downloads/mybiddata.txt"));
+            list.add(new File("/home/dora/Downloads/MyBidAwardsData.sql"));
+
+            ZipParameters zipParameters = new ZipParameters();
+            zipParameters.setEncryptFiles(true);
+            zipParameters.setCompressionLevel(CompressionLevel.NORMAL);
+            zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            zipParameters.setEncryptionMethod(EncryptionMethod.AES);
+
+            zipFile.addFiles(list, zipParameters);
+            FileInputStream fileInputStream = new FileInputStream(zipFile.getFile());
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=\"MyZip.ZIP\"");
+            FileCopyUtils.copy(fileInputStream, response.getOutputStream());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "Successfully Downloaded";
+    }
+
 }
