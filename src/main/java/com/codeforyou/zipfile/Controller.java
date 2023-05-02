@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,9 +95,11 @@ public class Controller {
 
             ZipFile zipFile = new ZipFile("Myzip.zip", "password".toCharArray());
 
-            ArrayList<File> list = new ArrayList<File>();
-            list.add(new File("/home/dora/Downloads/mybiddata.txt"));
-            list.add(new File("/home/dora/Downloads/MyBidAwardsData.sql"));
+            // ArrayList<File> list = new ArrayList<File>();
+            // list.add(new File("/home/dora/Downloads/mybiddata.txt"));
+            // list.add(new File("/home/dora/Downloads/MyBidAwardsData.sql"));
+
+            List<File> list = Arrays.asList(new File("/home/dora/Downloads/mybiddata.txt"),new File("/home/dora/Downloads/MyBidAwardsData.sql"));
 
             ZipParameters zipParameters = new ZipParameters();
             zipParameters.setEncryptFiles(true);
